@@ -1,27 +1,21 @@
-# Frobnicator
+# Discord Game Bot
 
 ## Autorzy
-- Andrzej Głuszak (gr 9, @agluszak na githubie)
-- Linus Torvalds (Uniwersytet Helsiński, @torvalds na githubie)
+- Katarzyna Mielnik (gr 4, @mielnikk na githubie)
+- Julia Podrażka (gr 4, @julia-podrazka na githubie)
 
 ## Opis
-Od zawsze chcieliśmy napisać grę komputerową.
-Frobnicator będzie to gra platformowa, w której chodzi o to, żeby...
+Plan jest taki, że napiszemy bota do Discorda umożliwiającego interaktywne granie w pewne gry. Generalnie muszą to być gry, które łatwo można przedstawić w tekstowym formacie.
 
-Z grubsza będziemy wzorować się na [tym tutorialu](https://dev.to/sbelzile/rust-platformer-part-1-bevy-and-ecs-2pci).
 
 ## Funkcjonalność
-- Generowanie map
-- Strzelanie
-- AI dla wrogów (bardziej rozbudowane niż w tutorialu)
-- Możliwość zapisywania i wczytywania stanu gry
-- Punktacja
+- przeprowadzanie rozgrywki
+- może jakieś rankingi dla ludzi na serwerze??
 
 ## Propozycja podziału na części
-W pierwszej części stworzymy grę opartą na tutorialu (z lepszym AI) i jedną zahardcodowaną planszą.
+W pierwszej części Wordle.
 
-W drugiej części dodamy do tego losowy generator map, zapisywanie/wczytywanie stanu gry oraz system punktacji.
+W drugiej części dodamy więcej gier i ewentualnie coś jeszcze.
 
 ## Biblioteki
-- Bevy
-- może coś do serializacji danych? (czy mógłby Pan coś polecić?)
+Jesteśmy otwarte na sugestie.
