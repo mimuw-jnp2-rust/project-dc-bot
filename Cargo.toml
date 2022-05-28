@@ -6,7 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ron = "0.5.1"
+ron = "0.7.0"
+serde = "1.0.137"
+tokio = { version = "0.2", features = ["macros"] }
 [dependencies.serenity]
 git = "https://github.com/serenity-rs/serenity"
 branch = "current"
@@ -18,4 +20,6 @@ features = [
     "standard_framework",
     "rustls_backend",
     "utils",
+    "client",
+    "gateway"
 ]

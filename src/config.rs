@@ -3,42 +3,43 @@ mod private {
     pub const TOKEN: &'static str = "OTc2MjI1OTg0ODYyODc5ODI0.G6YFle.YGmB0wvOvC_BgfqSNkRXOw4w75aUHPq1QKme0M";
 }
 
+use std::io::Write;
 use ron::{ser, de};
 use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
-    token: &'static str,
-    prefix: &'static str,
+    token: String,
+    prefix: String,
 }
 
 impl Config {
     pub fn new() -> Self {
         return Config {
-            token: private::TOKEN,
-            prefix: private::PREFIX,
+            token: String::from(private::TOKEN),
+            prefix: String::from(private::PREFIX),
         };
     }
 
-    pub fn token(&self) -> &'static str {
-        return self.token;
+    pub fn token(&self) -> &str {
+        return self.token.as_str();
     }
 
-    pub fn prefix(&self) -> &'static str {
-        return self.prefix;
+    pub fn prefix(&self) -> &str {
+        return self.prefix.as_str();
     }
 
     /* Saves the configuration data into 'config.ron'. */
     pub fn save(&self) -> std::io::Result<()> {
         let data = Config {
-            token: private::TOKEN,
-            prefix: private::PREFIX,
+            token: String::from(private::TOKEN),
+            prefix: String::from(private::PREFIX),
         };
 
         let pretty = ser::PrettyConfig::new()
-            .with_depth_limit(2)
-            .with_separate_tuple_members(true)
-            .with_enum_arrays(true);
+            .depth_limit(2)
+            .separate_tuple_members(true)
+            .enumerate_arrays(true);
 
         let s = ser::to_string_pretty(&data, pretty)
             .expect("Serialization failed!");
@@ -56,7 +57,7 @@ impl Config {
     pub fn load() -> std::io::Result<Config> {
         let input_path = format!("{}/config.ron", env!("CARGO_MANIFEST_DIR"));
         let f = std::fs::File::open(&input_path).expect("Failed opening file");
-        let config: Config = match de::from_reader(f) {
+        let config: Config = match de::from_reader(&f) {
             Ok(x) => x,
             Err(e) => {
                 println!("Failed to load config: {}", e);
