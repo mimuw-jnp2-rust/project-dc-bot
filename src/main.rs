@@ -1,11 +1,21 @@
 mod config;
+mod wordle;
+
+use std::collections::HashMap;
 use config::Config;
+use wordle::Wordle;
 use serenity::{
     client::ClientBuilder,
     framework::standard::{macros::command, macros::group, CommandResult, StandardFramework},
     model::prelude::*,
+    model::id::*,
     prelude::*,
 };
+
+/* Struct containing information on all instances of Wordle that have been started. */
+struct Server{
+    games : HashMap<UserId, Wordle>
+}
 
 #[command]
 async fn start(ctx: &Context, msg: &Message) -> CommandResult {
