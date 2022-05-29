@@ -1,11 +1,12 @@
 mod private {
-    pub const PREFIX: &'static str = "!";
-    pub const TOKEN: &'static str = "OTc2MjI1OTg0ODYyODc5ODI0.G6YFle.YGmB0wvOvC_BgfqSNkRXOw4w75aUHPq1QKme0M";
+    pub const PREFIX: &str = "!";
+    pub const TOKEN: &str =
+        "OTc2MjI1OTg0ODYyODc5ODI0.G6YFle.YGmB0wvOvC_BgfqSNkRXOw4w75aUHPq1QKme0M";
 }
 
+use ron::{de, ser};
+use serde::{Deserialize, Serialize};
 use std::io::Write;
-use ron::{ser, de};
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Config {
@@ -15,18 +16,18 @@ pub struct Config {
 
 impl Config {
     pub fn new() -> Self {
-        return Config {
+        Config {
             token: String::from(private::TOKEN),
             prefix: String::from(private::PREFIX),
-        };
+        }
     }
 
     pub fn token(&self) -> &str {
-        return self.token.as_str();
+        self.token.as_str()
     }
 
     pub fn prefix(&self) -> &str {
-        return self.prefix.as_str();
+        self.prefix.as_str()
     }
 
     /* Saves the configuration data into 'config.ron'. */
@@ -41,8 +42,7 @@ impl Config {
             .separate_tuple_members(true)
             .enumerate_arrays(true);
 
-        let s = ser::to_string_pretty(&data, pretty)
-            .expect("Serialization failed!");
+        let s = ser::to_string_pretty(&data, pretty).expect("Serialization failed!");
 
         let mut file = std::fs::File::create("config.ron")?;
         if let Err(why) = write!(file, "{}", s) {
@@ -50,7 +50,7 @@ impl Config {
         } else {
             println!("Write operation succeeded!");
         }
-        return Ok(());
+        Ok(())
     }
 
     /* Deserializes the configuration data from 'config.ron' and initializes app's settings. */
@@ -65,6 +65,6 @@ impl Config {
             }
         };
 
-        return Ok(config);
+        Ok(config)
     }
 }
