@@ -24,7 +24,7 @@ struct Public;
 async fn main() {
     let _ = Config::new().save();
     let config = Config::load().unwrap();
-    let mut client = ClientBuilder::new(config.token(), GatewayIntents::default())
+    let mut client = ClientBuilder::new(config.token(), GatewayIntents::GUILD_MESSAGES.union(GatewayIntents::MESSAGE_CONTENT))
         .framework(
             StandardFramework::new()
                 .configure(|c| c.with_whitespace(true).prefix(config.prefix()))
