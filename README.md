@@ -5,17 +5,24 @@
 - Julia Podrażka (gr 4, @julia-podrazka na githubie)
 
 ## Opis
-Plan jest taki, że napiszemy bota do Discorda umożliwiającego interaktywne granie w pewne gry. Generalnie muszą to być gry, które łatwo można przedstawić w tekstowym formacie.
-
+Bot do Discorda umożliwiający granie w Wordle.
 
 ## Funkcjonalność
-- przeprowadzanie rozgrywki
-- może jakieś rankingi dla ludzi na serwerze??
+Gra w Wordle na czacie. Każdy użytkownik może rozpocząć instancję gry dla siebie, przy czym może mieć maksymalnie jedną aktywną rozgrywkę w obrębie jednego kanału. 
 
-## Propozycja podziału na części
-W pierwszej części Wordle.
+## Użycie
+Token do bota osadzonego na swoim serwerze należy umieścić w pliku `config.ron`.
 
-W drugiej części dodamy więcej gier i ewentualnie coś jeszcze.
+Następnie odpalić bota za pomocą 
+```
+cargo run
+```
+
+## Plany na drugą część
+- dodawanie zestawu customowych emoji na każdym serwerze, na którym się pojawi bot
+- wybór długości słowa, które należy zgadnąć
+- opcja "poddania się" poprzez dodanie reakcji białej flagi - bot wyświetlałby wtedy słowo oraz jego definicję zdobytą za pomocą API jakiegoś słownika
+- ???
 
 ## Biblioteki
-Jesteśmy otwarte na sugestie.
+W głównej mierze Serenity, pojawiły się również Tokio i Serde.
