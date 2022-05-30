@@ -1,5 +1,8 @@
+use std::process::Output;
 use serde::Deserialize;
 use bracket_random::prelude::RandomNumberGenerator;
+use serenity::futures::future::MaybeDone::Future;
+use serenity::futures::{StreamExt, TryStreamExt};
 use tokio::task::spawn_blocking;
 
 #[derive(Deserialize)]
@@ -19,9 +22,25 @@ impl Word {
 
 impl Words {
     pub async fn new() -> Words {
-        let response = reqwest::blocking::get("https://raw.githubusercontent.com/mongodb-developer/bash-wordle/main/words.json").unwrap();
-        Words {
-            words: response.json().unwrap(),
+        let result = reqwest::get("https://raw.githubusercontent.com/mongodb-developer/bash-wordle/main/words.json")
+            .await;
+
+        match result {
+            Err(why) => {
+                println!("Error fetching data: {}", why);
+                Words { words: vec![Word { word: String::from("empty") }] }
+            }
+            Ok(response) => {
+                Words {
+                    words: response.json()
+                        .await
+                        .or_else(|err| {
+                            println!("Parsing error: {}", err);
+                            Result::Ok(vec![])
+                        })
+                        .unwrap()
+                }
+            }
         }
     }
 
