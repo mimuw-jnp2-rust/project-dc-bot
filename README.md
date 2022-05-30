@@ -11,7 +11,7 @@ Bot do Discorda umożliwiający granie w Wordle.
 Gra w Wordle na czacie. Każdy użytkownik może rozpocząć instancję gry dla siebie, przy czym może mieć maksymalnie jedną aktywną rozgrywkę w obrębie jednego kanału. 
 
 ## Użycie
-Token do bota osadzonego na swoim serwerze należy umieścić w pliku `config.ron`.
+Token do bota osadzonego na swoim serwerze należy umieścić odpowiednim structcie w `config.rs`.
 
 Następnie odpalić bota za pomocą 
 ```
