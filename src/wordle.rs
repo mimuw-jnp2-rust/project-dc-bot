@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 pub enum Result {Green, Yellow, Black}
-static DEFAULT_SIZE: u32 = 5;
-static GUESSES: u32 = 6;
+pub static DEFAULT_SIZE: u32 = 5;
+pub static GUESSES: u32 = 6;
 
 pub struct Field {
     pub letter: char,
@@ -17,9 +17,9 @@ pub struct Wordle {
 }
 
 impl Wordle {
-    pub fn new() -> Wordle {
+    pub fn new(word: String) -> Wordle {
         Wordle {
-            word: String::from("ABCDE"),
+            word,
             guesses: 0,
             fields: HashMap::new(),
         }
