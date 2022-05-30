@@ -34,10 +34,6 @@ impl Words {
                 Words {
                     words: response.json()
                         .await
-                        .or_else(|err| {
-                            println!("Parsing error: {}", err);
-                            Result::Ok(vec![])
-                        })
                         .unwrap()
                 }
             }
