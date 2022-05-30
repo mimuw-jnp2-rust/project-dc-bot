@@ -41,6 +41,20 @@ impl ServerMap {
 }
 
 #[command]
+async fn help(ctx: &Context, msg: &Message) -> CommandResult {
+    if let Err(why) =
+    msg.channel_id.send_message(ctx, |m| {
+        m.embed(|e| {
+            e.title("Hello, I'm a Wordle Bot")
+                .description("Type `!start` to start the game.")
+        })
+    }).await {
+        println!("Error sending the help message: {}", why);
+    }
+    Ok(())
+}
+
+#[command]
 async fn start(ctx: &Context, msg: &Message) -> CommandResult {
     let mut wordle_data = ctx.data.write().await;
     let wordle_map = wordle_data
@@ -99,7 +113,7 @@ async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 /* Declaration of a set of available commands. */
 #[group("public")]
-#[commands(start, guess)]
+#[commands(start, guess, help)]
 struct Public;
 
 #[tokio::main]
