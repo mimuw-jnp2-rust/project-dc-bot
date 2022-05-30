@@ -79,7 +79,7 @@ async fn start(ctx: &Context, msg: &Message) -> CommandResult {
 
 #[command]
 async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
-    let guess = args.single_quoted::<String>()?;
+    let guess = args.single_quoted::<String>()?.to_uppercase();
 
     let mut wordle_data = ctx.data.write().await;
     let mut wordle_map = wordle_data
