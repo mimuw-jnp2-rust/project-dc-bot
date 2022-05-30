@@ -1,5 +1,6 @@
 mod config;
 mod wordle;
+mod words;
 
 use std::collections::HashMap;
 use config::Config;
