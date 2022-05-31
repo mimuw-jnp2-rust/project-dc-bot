@@ -14,6 +14,7 @@ pub struct Words {
 
 impl Words {
     pub async fn new() -> Words {
+        /* Get list of available words in json format. */
         let result = reqwest::get(
             "https://raw.githubusercontent.com/mongodb-developer/bash-wordle/main/words.json",
         )
@@ -24,18 +25,19 @@ impl Words {
                 println!("Error fetching data: {}", why);
                 Words {
                     words: vec![Word {
-                        word: String::from("empty"),
+                        word: String::from("EMPTY"),
                     }],
                 }
             }
             Ok(response) => Words {
-                words: response.json().await.unwrap(),
+                words: response.json().await.expect("Error parsing list of words"),
             },
         }
     }
 
     pub fn generate_word(&self) -> &Word {
         let mut rng = RandomNumberGenerator::new();
-        rng.random_slice_entry(&self.words).unwrap()
+        rng.random_slice_entry(&self.words)
+            .expect("Error getting random word")
     }
 }
