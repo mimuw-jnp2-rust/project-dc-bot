@@ -1,10 +1,12 @@
 use std::collections::HashMap;
+use string_builder::Builder;
 
 pub enum Result {
     Green,
     Yellow,
     Red,
 }
+
 pub static DEFAULT_SIZE: usize = 5;
 pub static GUESSES: u32 = 6;
 pub static GREEN_SQUARE: &str = ":green_square: ";
@@ -39,6 +41,8 @@ impl Wordle {
         }
     }
 
+    /* Saves guess word as Fields with corresponding color describing if char
+    matches the chars in a word to guess. */
     pub fn add_fields(&mut self, guess: String) {
         let mut field_vec = Vec::new();
         for (pos, c) in guess.chars().enumerate() {
@@ -55,31 +59,31 @@ impl Wordle {
         self.fields.insert(self.guesses, field_vec);
     }
 
-    pub fn display_game(&self, string_response: &mut String) {
+    pub fn display_game(&self, string_response: &mut Builder) {
         for round in 1..(GUESSES + 1) {
             if self.guesses >= round {
                 let vec_fields = self.fields.get(&round).unwrap();
                 /* Displays guessed word. */
                 for field in vec_fields {
-                    string_response.push_str(&format!("{}     ", field.letter));
+                    string_response.append(format!("{}     ", field.letter));
                 }
-                string_response.push('\n');
+                string_response.append('\n');
 
                 /* Displays different colored squares depending on square value in Field. */
                 for field in vec_fields {
                     match field.square {
                         Result::Red => {
-                            string_response.push_str(RED_SQUARE);
+                            string_response.append(RED_SQUARE);
                         }
                         Result::Yellow => {
-                            string_response.push_str(YELLOW_SQUARE);
+                            string_response.append(YELLOW_SQUARE);
                         }
                         Result::Green => {
-                            string_response.push_str(GREEN_SQUARE);
+                            string_response.append(GREEN_SQUARE);
                         }
                     }
                 }
-                string_response.push('\n');
+                string_response.append('\n');
             }
         }
     }
