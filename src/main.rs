@@ -14,11 +14,13 @@ use serenity::{
 };
 use std::collections::HashMap;
 use std::sync::Arc;
+use string_builder::Builder;
 use tokio::sync::Mutex;
 use wordle::Wordle;
 
 pub static HELLO_MSG: &str = "Hello, I'm a Wordle Bot";
 
+/* Structure to share data across server. */
 struct ServerKey;
 
 impl TypeMapKey for ServerKey {
@@ -101,18 +103,19 @@ async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         .map(|word| word.word.clone())
         .collect();
 
+    /* Word comparison is case insensitive. */
     let guess = args.single_quoted::<String>()?.to_uppercase();
-    let mut string_response = String::from("");
+    let mut string_response = Builder::default();
 
     if guess.len() != DEFAULT_SIZE || !guess.chars().all(char::is_alphabetic) {
-        string_response.push_str("Guess word must contain 5 letters without numbers");
+        string_response.append("Guess word must contain 5 letters without numbers");
     } else if !words_vector.contains(&guess) {
-        string_response.push_str("Guess word is not in word list");
+        string_response.append("Guess word is not in word list");
     } else {
         let wordle = wordle_map.games.get_mut(&(msg.channel_id, msg.author.id));
 
         if wordle.is_none() {
-            string_response.push_str("To play the game type !start");
+            string_response.append("To play the game type !start");
         } else {
             let mut wordle = wordle.unwrap();
             wordle.guesses += 1;
@@ -120,21 +123,25 @@ async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
             /* Check if the guess was correct or if the person ran out of guesses.
             If not, add guess to the list and display all guesses. */
             if guess.eq(&wordle.word) {
-                string_response.push_str("You won! 🎉");
+                string_response.append("You won! 🎉");
                 wordle_map.games.remove(&(msg.channel_id, msg.author.id));
             } else if wordle.guesses == GUESSES {
-                string_response.push_str("You ran out of guesses!\nThe word was: ");
-                string_response.push_str(wordle.word.as_str());
+                string_response.append("You ran out of guesses!\nThe word was: ");
+                string_response.append(wordle.word.as_str());
                 wordle_map.games.remove(&(msg.channel_id, msg.author.id));
             } else {
                 wordle.add_fields(guess);
                 wordle.display_game(&mut string_response);
-                string_response.push_str("Guess again!");
+                string_response.append("Guess again!");
             }
         }
     }
 
-    if let Err(why) = msg.channel_id.say(&ctx.http, &string_response).await {
+    if let Err(why) = msg
+        .channel_id
+        .say(&ctx.http, &string_response.string().unwrap())
+        .await
+    {
         println!("Error sending message: {}", why);
     }
     Ok(())
@@ -161,6 +168,7 @@ async fn main() {
     .type_map_insert::<ServerKey>(Arc::new(Mutex::new(ServerMap::new().await)))
     .await
     .expect("Couldn't create the new client!");
+
     if let Err(why) = client.start().await {
         println!("Client error: {}", why)
     }
