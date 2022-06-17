@@ -7,11 +7,11 @@ pub enum Result {
     Red,
 }
 
-pub static DEFAULT_SIZE: usize = 5;
-pub static GUESSES: u32 = 6;
-pub static GREEN_SQUARE: &str = ":green_square: ";
-pub static YELLOW_SQUARE: &str = ":yellow_square: ";
-pub static RED_SQUARE: &str = ":red_square: ";
+pub const DEFAULT_SIZE: usize = 5;
+pub const GUESSES: u32 = 6;
+pub const GREEN_SQUARE: &str = ":green_square: ";
+pub const YELLOW_SQUARE: &str = ":yellow_square: ";
+pub const RED_SQUARE: &str = ":red_square: ";
 
 /* Struct representing a single char in guess word. */
 pub struct Field {
