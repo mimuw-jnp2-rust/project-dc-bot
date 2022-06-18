@@ -1,11 +1,11 @@
 mod config;
+mod messages;
 mod wordle;
 mod words;
-mod messages;
 
+use crate::messages::*;
 use crate::wordle::{DEFAULT_SIZE, GUESSES};
 use crate::words::Words;
-use crate::messages::*;
 use config::Config;
 use serenity::futures::TryFutureExt;
 use serenity::{
@@ -22,7 +22,6 @@ use std::vec::Vec;
 use string_builder::Builder;
 use tokio::sync::{Mutex, MutexGuard};
 use wordle::Wordle;
-
 
 /* Every solo player has 5 minutes to complete game.
 Group players have 5 minutes to join a game and another 5 minutes to play. */
@@ -56,7 +55,6 @@ impl ServerMap {
         }
     }
 }
-
 
 #[command]
 async fn help(ctx: &Context, msg: &Message) -> CommandResult {
@@ -186,6 +184,41 @@ fn clean_game(wordle_map: &mut MutexGuard<'_, ServerMap>, msg: &Message, author:
     wordle_map.max_people_playing = 1;
 }
 
+#[command]
+async fn giveup(ctx: &Context, msg: &Message) -> CommandResult {
+    let mut wordle_data = ctx.data.write().await;
+    let mut wordle_map = wordle_data
+        .get_mut::<ServerKey>()
+        .expect("Failed to retrieve wordle map!")
+        .lock()
+        .await;
+
+    let mut author = msg.author.id;
+    if wordle_map.max_people_playing > 1 {
+        if !check_channel(&wordle_map, msg) {
+            return send_embed_message(ctx, msg, GUESS_WRONG_CHANNEL_MSG).await;
+        } else if !wordle_map.joined_people.contains(&msg.author.id) {
+            return send_embed_message(ctx, msg, NOT_IN_GROUP_MSG).await;
+        }
+        author = wordle_map.joined_people[0];
+    }
+
+    let wordle = wordle_map.games.get_mut(&(msg.channel_id, author));
+    if wordle.is_none() {
+        return send_embed_message(ctx, msg, START_PLAYING_MSG).await;
+    }
+
+    let wordle = &mut wordle.unwrap().0;
+    let mut string_response = Builder::default();
+    string_response.append("Your word was: ");
+    string_response.append(wordle.word.as_str());
+    if let Err(why) = send_message(&ctx.http, &msg.channel_id, string_response).await {
+        println!("Error sending the message: {}", why);
+    }
+    clean_game(&mut wordle_map, msg, author);
+
+    Ok(())
+}
 
 #[command]
 async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
@@ -288,7 +321,7 @@ async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 /* Declaration of a set of available commands. */
 #[group("public")]
-#[commands(start, guess, help, join)]
+#[commands(start, guess, help, join, giveup)]
 struct Public;
 
 #[tokio::main]
