@@ -1,3 +1,4 @@
+use serenity::model::id::MessageId;
 use std::collections::HashMap;
 use string_builder::Builder;
 
@@ -30,6 +31,7 @@ pub struct Wordle {
     pub word: String,
     pub guesses: u32,
     pub fields: HashMap<u32, Vec<Field>>,
+    pub last_message_id: Option<MessageId>,
 }
 
 impl Wordle {
@@ -38,6 +40,7 @@ impl Wordle {
             word,
             guesses: 0,
             fields: HashMap::new(),
+            last_message_id: None,
         }
     }
 

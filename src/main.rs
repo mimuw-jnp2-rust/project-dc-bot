@@ -6,6 +6,8 @@ use crate::wordle::{DEFAULT_SIZE, GUESSES};
 use crate::words::Words;
 use config::Config;
 use const_format::formatcp;
+use serenity::futures::TryFutureExt;
+use serenity::http::Http;
 use serenity::{
     client::ClientBuilder,
     framework::standard::{macros::command, macros::group, Args, CommandResult, StandardFramework},
@@ -225,6 +227,27 @@ fn clean_game(wordle_map: &mut MutexGuard<'_, ServerMap>, msg: &Message, author:
     wordle_map.max_people_playing = 1;
 }
 
+/* Sends the contents of message_builder to a channel. */
+async fn send_message(
+    http: &Http,
+    channel: &ChannelId,
+    message_builder: Builder,
+) -> Result<Message, SerenityError> {
+    channel.say(http, message_builder.string().unwrap()).await
+}
+
+/* Adds a white flag reaction under a message.
+ * The message is supposed to display the current state of the game. */
+async fn react_to_message(http: &Http, message: &Message, wordle: &mut Wordle) {
+    wordle.last_message_id = Some(message.id);
+    if let Err(why) = message
+        .react(http, ReactionType::Unicode(String::from("🏳")))
+        .await
+    {
+        println!("Could not react to the message; {}", why);
+    }
+}
+
 #[command]
 async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut wordle_data = ctx.data.write().await;
@@ -286,16 +309,24 @@ async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let mut wordle = &mut wordle.unwrap().0;
     wordle.guesses += 1;
 
-    /* Check if the guess was correct or if the person ran out of guesses.
-    If not, add guess to the list and display all guesses. */
+    /* Processing and saving the guess, then sending a reply to the same channel the guess was sent to. */
     if guess.eq(&wordle.word) {
+        /* The guess was entirely correct */
         string_response.append(WON_MSG);
+        if let Err(why) = send_message(&ctx.http, &msg.channel_id, string_response).await {
+            println!("Error sending the message: {}", why);
+        }
         clean_game(&mut wordle_map, msg, author);
     } else if wordle.guesses == GUESSES {
+        /* The player ran out of guesses. */
         string_response.append(TOO_MANY_GUESSES_MSG);
         string_response.append(wordle.word.as_str());
+        if let Err(why) = send_message(&ctx.http, &msg.channel_id, string_response).await {
+            println!("Error sending the message: {}", why);
+        }
         clean_game(&mut wordle_map, msg, author);
     } else {
+        /* Other cases. */
         wordle.add_fields(guess);
         if !is_group {
             string_response.append(msg.author.name.to_string());
@@ -303,14 +334,15 @@ async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
         }
         wordle.display_game(&mut string_response);
         string_response.append(GUESS_AGAIN);
-    }
-
-    if let Err(why) = msg
-        .channel_id
-        .say(&ctx.http, &string_response.string().unwrap())
-        .await
-    {
-        println!("Error sending message: {}", why);
+        if let Err(why) = send_message(&ctx.http, &msg.channel_id, string_response)
+            .and_then(|message| async move {
+                react_to_message(&ctx.http, &message, wordle).await;
+                Ok(())
+            })
+            .await
+        {
+            println!("Error sending the message: {}", why);
+        }
     }
     Ok(())
 }
