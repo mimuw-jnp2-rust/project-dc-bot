@@ -9,6 +9,7 @@ use crate::words::Words;
 use config::Config;
 use serenity::futures::TryFutureExt;
 use serenity::{
+    async_trait,
     client::ClientBuilder,
     framework::standard::{macros::command, macros::group, Args, CommandResult, StandardFramework},
     model::id::*,
@@ -52,6 +53,54 @@ impl ServerMap {
             max_people_playing: 1,
             joined_people: Vec::new(),
             words: Words::new().await,
+        }
+    }
+}
+
+struct Handler;
+
+#[async_trait]
+impl EventHandler for Handler {
+    /* The bot's response to adding a reaction to a message.
+     * It checks whether a user playing Wordle has reacted with a white flag emoji,
+     * meaning they have given up on guessing. The bot ends their game. */
+    async fn reaction_add(&self, _ctx: Context, _add_reaction: Reaction) {
+        let user = if let Some(u) = _add_reaction.user_id {
+            u
+        } else {
+            return;
+        };
+        if !_add_reaction.emoji.unicode_eq("🏳") {
+            return;
+        }
+        let mut wordle_data = _ctx.data.write().await;
+        let mut wordle_map = wordle_data
+            .get_mut::<ServerKey>()
+            .expect("Failed to retrieve wordle map!")
+            .lock()
+            .await;
+
+        /* Ignoring if a non-player reacts to the message. */
+        if wordle_map.max_people_playing > 1 && !wordle_map.joined_people.contains(&user) {
+            return;
+        }
+        /* Finding a game the reaction was added to.
+         * The reaction must be added to the latest wordle display of the game,
+         * otherwise the bot will not respond. */
+        let mut coll = wordle_map
+            .games
+            .iter_mut()
+            .filter(|(_, (w, _))| w.last_message_id == Some(_add_reaction.message_id));
+        if let Some((&(_, player), (wordle, _))) = coll.next() {
+            if player != user {
+                return;
+            }
+            send_wordle_solution(wordle, &_add_reaction.channel_id, &_ctx.http).await;
+            wordle_map
+                .games
+                .retain(|_, (w, _)| w.last_message_id != Some(_add_reaction.message_id));
+            wordle_map.joined_people.clear();
+            wordle_map.max_people_playing = 1;
         }
     }
 }
@@ -203,20 +252,14 @@ async fn giveup(ctx: &Context, msg: &Message) -> CommandResult {
         author = wordle_map.joined_people[0];
     }
 
-    let wordle = wordle_map.games.get_mut(&(msg.channel_id, author));
+    let wordle = wordle_map.games.remove(&(msg.channel_id, author));
     if wordle.is_none() {
         return send_embed_message(ctx, msg, START_PLAYING_MSG).await;
     }
-
-    let wordle = &mut wordle.unwrap().0;
-    let mut string_response = Builder::default();
-    string_response.append("Your word was: ");
-    string_response.append(wordle.word.as_str());
-    if let Err(why) = send_message(&ctx.http, &msg.channel_id, string_response).await {
-        println!("Error sending the message: {}", why);
-    }
-    clean_game(&mut wordle_map, msg, author);
-
+    wordle_map.joined_people.clear();
+    wordle_map.max_people_playing = 1;
+    let wordle = &wordle.unwrap().0;
+    send_wordle_solution(wordle, &msg.channel_id, &ctx.http).await;
     Ok(())
 }
 
@@ -332,6 +375,7 @@ async fn main() {
         config.token(),
         GatewayIntents::GUILD_MESSAGES.union(GatewayIntents::MESSAGE_CONTENT),
     )
+    .event_handler(Handler)
     .framework(
         StandardFramework::new()
             .configure(|c| c.with_whitespace(true).prefix(config.prefix()))

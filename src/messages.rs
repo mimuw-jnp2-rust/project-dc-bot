@@ -1,12 +1,13 @@
+use crate::wordle::{DEFAULT_SIZE, GUESSES};
+use crate::Wordle;
 use const_format::formatcp;
+use serde_json::{json, Value};
 use serenity::framework::standard::CommandResult;
 use serenity::http::Http;
 use serenity::model::prelude::{ChannelId, Message, ReactionType};
 use serenity::prelude::{Context, SerenityError};
-use string_builder::Builder;
-use crate::Wordle;
-use crate::wordle::{DEFAULT_SIZE, GUESSES};
 
+use string_builder::Builder;
 
 /* Messages send by bot. */
 pub const HELLO_MSG: &str = "Hello, I'm a Wordle Bot";
@@ -37,7 +38,7 @@ pub const WON_MSG: &str = "You won! 🎉";
 pub const TOO_MANY_GUESSES_MSG: &str = "You ran out of guesses!\nThe word was: ";
 pub const YOUR_GUESSES_MSG: &str = " your guesses: \n";
 pub const GUESS_AGAIN: &str = "Guess again!";
-
+const DICTIONARY_REQUEST: &str = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 
 /* Sends the contents of message_builder to a channel. */
 pub async fn send_message(
@@ -57,6 +58,56 @@ pub async fn react_to_message(http: &Http, message: &Message, wordle: &mut Wordl
         .await
     {
         println!("Could not react to the message; {}", why);
+    }
+}
+
+/* Fetches a definition for a given word from a dictionary API.
+ * Returns the first definition found.
+ * If there has been an error, returns an empty String. */
+async fn get_definition(word: &str) -> String {
+    let mut definition = String::from("");
+    let default = json!("");
+    let mut url = String::from(DICTIONARY_REQUEST);
+    url.push_str(word);
+    let request = reqwest::get(url).await;
+    match request {
+        Err(why) => {
+            println!("Error fetching the definition: {}", why)
+        }
+        Ok(response) => {
+            if let Err(why) = response
+                .json::<Value>()
+                .await
+                .map(|json_value| {
+                    json_value
+                        .pointer("/0/meanings/0/definitions/0/definition")
+                        .unwrap_or(&default)
+                        .clone()
+                })
+                .map(|value| {
+                    definition = value.to_string();
+                })
+            {
+                println!("Error reading the definition: {}", why);
+            }
+        }
+    }
+    definition
+}
+
+/* Sends the solution to given Wordle to the given channel.
+ * The channel is supposed to be the same one in which the game is happening. */
+pub async fn send_wordle_solution(wordle: &Wordle, channel: &ChannelId, http: &Http) {
+    let definition = get_definition(wordle.word.as_str()).await;
+
+    if let Err(why) = channel
+        .send_message(http, |m| {
+            m.content("Your word was:")
+                .embed(|e| e.title(wordle.word.as_str()).description(definition))
+        })
+        .await
+    {
+        println!("Error sending the message: {}", why);
     }
 }
 
