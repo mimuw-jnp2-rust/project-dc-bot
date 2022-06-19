@@ -373,7 +373,9 @@ async fn main() {
     let config = Config::load().unwrap();
     let mut client = ClientBuilder::new(
         config.token(),
-        GatewayIntents::GUILD_MESSAGES.union(GatewayIntents::MESSAGE_CONTENT),
+        GatewayIntents::GUILD_MESSAGES
+            .union(GatewayIntents::MESSAGE_CONTENT)
+            .union(GatewayIntents::GUILD_MESSAGE_REACTIONS),
     )
     .event_handler(Handler)
     .framework(
