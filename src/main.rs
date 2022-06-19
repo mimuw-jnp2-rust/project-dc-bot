@@ -369,7 +369,6 @@ struct Public;
 
 #[tokio::main]
 async fn main() {
-    let _ = Config::new().save();
     let config = Config::load().unwrap();
     let mut client = ClientBuilder::new(
         config.token(),

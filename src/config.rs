@@ -1,7 +1,7 @@
 mod private {
     pub const PREFIX: &str = "!";
     pub const TOKEN: &str =
-        "The token goes here";
+        "";
 }
 
 use ron::{de, ser};
