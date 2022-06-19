@@ -56,6 +56,15 @@ impl ServerMap {
         }
     }
 }
+/* Creates a vector of user ids of all people that have joined a game instance.
+ * If there's no group game going on, appends wordle_starter as the only player. */
+fn get_players(wordle_map: &mut MutexGuard<'_, ServerMap>, wordle_starter: UserId) -> Vec<UserId> {
+    if wordle_map.max_people_playing > 1 {
+        wordle_map.joined_people.clone()
+    } else {
+        vec![wordle_starter]
+    }
+}
 
 struct Handler;
 
@@ -79,11 +88,14 @@ impl EventHandler for Handler {
             .expect("Failed to retrieve wordle map!")
             .lock()
             .await;
+        /* Indicates whether the game is played by one person or a group.*/
+        let single_player = wordle_map.max_people_playing == 1;
 
         /* Ignoring if a non-player reacts to the message. */
-        if wordle_map.max_people_playing > 1 && !wordle_map.joined_people.contains(&user) {
+        if !single_player && !wordle_map.joined_people.contains(&user) {
             return;
         }
+        let players = get_players(&mut wordle_map, user);
         /* Finding a game the reaction was added to.
          * The reaction must be added to the latest wordle display of the game,
          * otherwise the bot will not respond. */
@@ -92,10 +104,12 @@ impl EventHandler for Handler {
             .iter_mut()
             .filter(|(_, (w, _))| w.last_message_id == Some(_add_reaction.message_id));
         if let Some((&(_, player), (wordle, _))) = coll.next() {
-            if player != user {
+            /* Somebody else reacted to a player's game. */
+            if single_player && player != user {
                 return;
             }
-            send_wordle_solution(wordle, &_add_reaction.channel_id, &_ctx.http).await;
+            send_wordle_solution(wordle, &_add_reaction.channel_id, players, &_ctx.http).await;
+            /* Removing information about the instance. */
             wordle_map
                 .games
                 .retain(|_, (w, _)| w.last_message_id != Some(_add_reaction.message_id));
@@ -256,10 +270,17 @@ async fn giveup(ctx: &Context, msg: &Message) -> CommandResult {
     if wordle.is_none() {
         return send_embed_message(ctx, msg, START_PLAYING_MSG).await;
     }
+
     wordle_map.joined_people.clear();
     wordle_map.max_people_playing = 1;
     let wordle = &wordle.unwrap().0;
-    send_wordle_solution(wordle, &msg.channel_id, &ctx.http).await;
+    send_wordle_solution(
+        wordle,
+        &msg.channel_id,
+        get_players(&mut wordle_map, author),
+        &ctx.http,
+    )
+    .await;
     Ok(())
 }
 
@@ -275,11 +296,10 @@ async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     check_ended_games(&mut wordle_map);
 
     let mut author = msg.author.id;
-    let mut is_group = false;
+    let players = get_players(&mut wordle_map, author);
 
     /* Check if a person can guess if there is a group game. */
     if wordle_map.max_people_playing > 1 {
-        is_group = true;
         if wordle_map.joined_people.len() != wordle_map.max_people_playing {
             return send_embed_message(
                 ctx,
@@ -328,33 +348,35 @@ async fn guess(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     if guess.eq(&wordle.word) {
         /* The guess was entirely correct */
         string_response.append(WON_MSG);
-        if let Err(why) = send_message(&ctx.http, &msg.channel_id, string_response).await {
+        if let Err(why) = send_message(WON_MSG, Some(players), &ctx.http, &msg.channel_id).await {
             println!("Error sending the message: {}", why);
         }
         clean_game(&mut wordle_map, msg, author);
     } else if wordle.guesses == GUESSES {
         /* The player ran out of guesses. */
-        string_response.append(TOO_MANY_GUESSES_MSG);
-        string_response.append(wordle.word.as_str());
-        if let Err(why) = send_message(&ctx.http, &msg.channel_id, string_response).await {
+        if let Err(why) = send_message(TOO_MANY_GUESSES_MSG, None, &ctx.http, &msg.channel_id)
+            .and_then(|_| async move {
+                send_wordle_solution(wordle, &msg.channel_id, players, &ctx.http).await;
+                Ok(())
+            })
+            .await
+        {
             println!("Error sending the message: {}", why);
         }
         clean_game(&mut wordle_map, msg, author);
     } else {
         /* Other cases. */
         wordle.add_fields(guess);
-        if !is_group {
-            string_response.append(msg.author.name.to_string());
-            string_response.append(YOUR_GUESSES_MSG);
-        }
-        wordle.display_game(&mut string_response);
-        string_response.append(GUESS_AGAIN);
-        if let Err(why) = send_message(&ctx.http, &msg.channel_id, string_response)
-            .and_then(|message| async move {
-                react_to_message(&ctx.http, &message, wordle).await;
-                Ok(())
-            })
-            .await
+        if let Err(why) = send_string(
+            &ctx.http,
+            &msg.channel_id,
+            display_wordle(wordle, players).as_str(),
+        )
+        .and_then(|message| async move {
+            react_to_message(&ctx.http, &message, wordle).await;
+            Ok(())
+        })
+        .await
         {
             println!("Error sending the message: {}", why);
         }
