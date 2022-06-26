@@ -18,11 +18,10 @@ Następnie odpalić bota za pomocą
 cargo run
 ```
 
-## Plany na drugą część
-- dodawanie zestawu customowych emoji na każdym serwerze, na którym się pojawi bot
-- wybór długości słowa, które należy zgadnąć
-- opcja "poddania się" poprzez dodanie reakcji białej flagi - bot wyświetlałby wtedy słowo oraz jego definicję zdobytą za pomocą API jakiegoś słownika
-- ???
+## Zmiany w drugiej części
+- możliwość grania w grupie
+- opcja "poddania się" poprzez dodanie reakcji białej flagi - bot wyświetla wtedy słowo oraz jego definicję zdobytą za pomocą API słownika
+- pięciominutowe ograniczenie czasowe na każdą grę
 
 ## Biblioteki
 W głównej mierze Serenity, pojawiły się również Tokio i Serde.
