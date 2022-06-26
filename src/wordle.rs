@@ -45,7 +45,7 @@ impl Wordle {
     }
 
     /* Saves guess word as Fields with corresponding color describing if char
-    matches the chars in a word to guess. */
+     * matches the chars in a word to guess. */
     pub fn add_fields(&mut self, guess: String) {
         let mut field_vec = Vec::new();
         for (pos, c) in guess.chars().enumerate() {
