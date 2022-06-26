@@ -32,7 +32,7 @@ pub const WRONG_CHANNEL_MSG: &str = "If you want to join your friends type `!joi
      on a channel where the game was initiated!";
 pub const START_GROUP_MSG: &str = "To start playing with friends type `!start <number_of_players>`";
 pub const GUESS_WRONG_CHANNEL_MSG: &str = "Type your guess on a channel where the game started!";
-pub const NOT_IN_GROUP_MSG: &str = "You can't guess the word as you are not in a group!";
+pub const NOT_IN_GROUP_MSG: &str = "You can't giveup! You are not in a game!";
 pub const INCORRECT_GUESS_MSG: &str = "Guess word must contain 5 letters without numbers";
 pub const NOT_IN_LIST_MSG: &str = "Guess word is not in word list";
 pub const START_PLAYING_MSG: &str = "If you want to play alone type `!start`! \
