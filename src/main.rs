@@ -8,16 +8,7 @@ use crate::wordle::{DEFAULT_SIZE, GUESSES};
 use crate::words::Words;
 use config::Config;
 use serenity::futures::TryFutureExt;
-use serenity::{mod config;
-mod messages;
-mod wordle;
-mod words;
 
-use crate::messages::*;
-use crate::wordle::{DEFAULT_SIZE, GUESSES};
-use crate::words::Words;
-use config::Config;
-use serenity::futures::TryFutureExt;
 use serenity::{
     async_trait,
     client::ClientBuilder,
