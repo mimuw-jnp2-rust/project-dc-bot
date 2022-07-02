@@ -1,27 +1,27 @@
-# Frobnicator
+# Discord Game Bot
 
 ## Autorzy
-- Andrzej Głuszak (gr 9, @agluszak na githubie)
-- Linus Torvalds (Uniwersytet Helsiński, @torvalds na githubie)
+- Katarzyna Mielnik (gr 4, @mielnikk na githubie)
+- Julia Podrażka (gr 4, @julia-podrazka na githubie)
 
 ## Opis
-Od zawsze chcieliśmy napisać grę komputerową.
-Frobnicator będzie to gra platformowa, w której chodzi o to, żeby...
-
-Z grubsza będziemy wzorować się na [tym tutorialu](https://dev.to/sbelzile/rust-platformer-part-1-bevy-and-ecs-2pci).
+Bot do Discorda umożliwiający granie w Wordle.
 
 ## Funkcjonalność
-- Generowanie map
-- Strzelanie
-- AI dla wrogów (bardziej rozbudowane niż w tutorialu)
-- Możliwość zapisywania i wczytywania stanu gry
-- Punktacja
+Gra w Wordle na czacie. Każdy użytkownik może rozpocząć instancję gry dla siebie, przy czym może mieć maksymalnie jedną aktywną rozgrywkę w obrębie jednego kanału. 
 
-## Propozycja podziału na części
-W pierwszej części stworzymy grę opartą na tutorialu (z lepszym AI) i jedną zahardcodowaną planszą.
+## Użycie
+Token do bota osadzonego na swoim serwerze należy umieścić odpowiednim structcie w `config.rs`.
 
-W drugiej części dodamy do tego losowy generator map, zapisywanie/wczytywanie stanu gry oraz system punktacji.
+Następnie odpalić bota za pomocą 
+```
+cargo run
+```
+
+## Zmiany w drugiej części
+- możliwość grania w grupie
+- opcja "poddania się" poprzez dodanie reakcji białej flagi - bot wyświetla wtedy słowo oraz jego definicję zdobytą za pomocą API słownika
+- pięciominutowe ograniczenie czasowe na każdą grę
 
 ## Biblioteki
-- Bevy
-- może coś do serializacji danych? (czy mógłby Pan coś polecić?)
+W głównej mierze Serenity, pojawiły się również Tokio i Serde.
