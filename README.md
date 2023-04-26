@@ -1,27 +1,22 @@
 # Discord Game Bot
 
-## Autorzy
-- Katarzyna Mielnik (gr 4, @mielnikk na githubie)
-- Julia Podrażka (gr 4, @julia-podrazka na githubie)
+## Autors
+- Katarzyna Mielnik @mielnikk
+- Julia Podrażka @julia-podrazka
 
-## Opis
-Bot do Discorda umożliwiający granie w Wordle.
+## Description
+Discord bot for playing Wordle.
+Each user can start a game to play alone or in a group.
+If you want to give up a game, click on a white flag in reactions under your last guess - then the game will be finished, and you will see a correct word with its definition.
+Each game has a timer - you only have 5 minutes to guess the word.
 
-## Funkcjonalność
-Gra w Wordle na czacie. Każdy użytkownik może rozpocząć instancję gry dla siebie, przy czym może mieć maksymalnie jedną aktywną rozgrywkę w obrębie jednego kanału. 
+## Installing a bot
+First, put your bot's token in the correct struct in `config.rs`.
 
-## Użycie
-Token do bota osadzonego na swoim serwerze należy umieścić odpowiednim structcie w `config.rs`.
-
-Następnie odpalić bota za pomocą 
+Then run command:
 ```
 cargo run
 ```
 
-## Zmiany w drugiej części
-- możliwość grania w grupie
-- opcja "poddania się" poprzez dodanie reakcji białej flagi - bot wyświetla wtedy słowo oraz jego definicję zdobytą za pomocą API słownika
-- pięciominutowe ograniczenie czasowe na każdą grę
-
-## Biblioteki
-W głównej mierze Serenity, pojawiły się również Tokio i Serde.
+## Libraries
+Our program uses primarily Serenity, as well as Tokio and Serde.
